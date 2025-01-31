@@ -1,0 +1,37 @@
+services:
+  catalog_database:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    volumes:
+      - catalog-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  catalog:
+    build: .
+    image: catalog-image
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      APP_PORT: ${CATALOG_PORT}
+    ports:
+      - "${CATALOG_PORT}:${CATALOG_PORT}"
+    depends_on:
+      - catalog_database
+    networks:
+      - app-network
+
+volumes:
+  catalog-db-data:
+
+networks:
+  app-network:
+    driver: bridge
