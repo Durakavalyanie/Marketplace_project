@@ -3,6 +3,7 @@ package scripts
 import (
 	"context"
 	"fmt"
+
 	//"log"
 
 	//"github.com/jackc/pgx/v4"
@@ -15,7 +16,7 @@ func CreateDBConnection(cfg config.Config) (*pgxpool.Pool, error) {
 	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=%s",
 		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.SSLMode)
 
-	connPool, err := pgxpool.Connect(context.Background(), connStr);
+	connPool, err := pgxpool.Connect(context.Background(), connStr)
 	if err != nil {
 		return nil, fmt.Errorf("error in connecting to db: %w", err)
 	}
@@ -36,17 +37,26 @@ func CreateCatalogTables(pool *pgxpool.Pool) error {
     		IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'category_var') THEN
         		CREATE TYPE category_var AS ENUM ('Головной убор', 'Верх', 'Низ', 'Обувь', 'Аксессуар', 'Прочее');
     		END IF;
+
+			IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_var') THEN
+        		CREATE TYPE status_var AS ENUM ('В наличии', 'Продано');
+    		END IF;
 		END $$;
 
 		CREATE TABLE IF NOT EXISTS Items (
     		id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    		sex sex_var NOT NULL,
-    		category category_var NOT NULL,
+			category category_var NOT NULL,
+			price INTEGER NOT NULL,
+			status status_var NOT NULL,
     		brand TEXT NOT NULL,
     		color TEXT NOT NULL,
     		size TEXT NOT NULL,
-    		description TEXT,
-    		price INTEGER NOT NULL
+			sex sex_var NOT NULL,
+    		description TEXT DEFAULT NULL,
+			created_at TIMESTAMP DEFAULT NOW(),
+			sold_at TIMESTAMP DEFAULT NULL,
+			seller_id UUID NOT NULL,
+			buyer_id UUID DEFAULT NULL
 		);
 
 		CREATE TABLE IF NOT EXISTS Items_photos(

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	//"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/models"
@@ -13,12 +12,13 @@ import (
 
 func AddItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.Item) (*models.ItemID, error) {
 	addItemScript := `
-		INSERT INTO Items(sex, category, brand, color, size, description, price)
-		values($1, $2, $3, $4, $5, $6, $7) RETURNING id;`
+		INSERT INTO Items(category, price, status, brand, color, size, sex, description, created_at, sold_at, seller_id, buyer_id)
+		values($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, NOW()), $10, $11, $12) RETURNING id;`
 
 	var itemID models.ItemID
-	err := poolConn.QueryRow(context.Background(), addItemScript, item.Sex, item.Category,
-		item.Brand, item.Color, item.Size, item.Description, item.Price).Scan(&itemID.UUID)
+	err := poolConn.QueryRow(context.Background(), addItemScript, item.Category, item.Price,
+		item.Status, item.Brand, item.Color, item.Size, item.Sex, item.Description, item.Created_at,
+		item.Sold_at, item.Seller_id, item.Buyer_id).Scan(&itemID.UUID)
 
 	if err != nil {
 		return nil, fmt.Errorf("error adding item: %w", err)
@@ -27,7 +27,7 @@ func AddItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.Item) (*m
 	return &itemID, nil
 }
 
-func UpdateItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.ItemUpdate) (error) {
+func UpdateItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.ItemUpdate) error {
 	addItemScript, args := generateUpdateQuery(item)
 
 	_, err := poolConn.Exec(context.Background(), addItemScript, args...)
@@ -39,7 +39,7 @@ func UpdateItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.ItemUp
 	return nil
 }
 
-func DeleteItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.ItemID) (error) {
+func DeleteItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.ItemID) error {
 	deleteItemScript := "DELETE FROM Items WHERE id = $1"
 
 	_, err := poolConn.Exec(context.Background(), deleteItemScript, item.UUID)
@@ -55,8 +55,9 @@ func GetItem(ctx context.Context, connPool *pgxpool.Pool, item *models.ItemID) (
 	getItemScript := "SELECT * FROM Items WHERE id = $1"
 
 	var foundItem models.Item
-	err := connPool.QueryRow(ctx, getItemScript, item.UUID).Scan(nil, &foundItem.Sex, &foundItem.Category,
-		&foundItem.Brand, &foundItem.Color, &foundItem.Size, &foundItem.Description, &foundItem.Price)
+	err := connPool.QueryRow(ctx, getItemScript, item.UUID).Scan(nil, &foundItem.Category, &foundItem.Price,
+		&foundItem.Status, &foundItem.Brand, &foundItem.Color, &foundItem.Size, &foundItem.Sex,
+		&foundItem.Description, &foundItem.Created_at, &foundItem.Sold_at, &foundItem.Seller_id, &foundItem.Buyer_id)
 	if err != nil {
 		return nil, fmt.Errorf("error in finding item: %w", err)
 	}
@@ -64,55 +65,85 @@ func GetItem(ctx context.Context, connPool *pgxpool.Pool, item *models.ItemID) (
 	return &foundItem, nil
 }
 
-
 func generateUpdateQuery(item *models.ItemUpdate) (string, []interface{}) {
 	setClauses := []string{}
-	args := []interface{}{}
-	argCounter := 1
-   
-	if item.Sex != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("sex = $%d", argCounter))
-		args = append(args, *item.Sex)
-	 	argCounter++
-	}
+	args := []interface{}{item.UUID}
+	argCounter := 2
+
 	if item.Category != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("category = $%d", argCounter))
-	 	args = append(args, *item.Category)
-	 	argCounter++
+		setClauses = append(setClauses, fmt.Sprintf("category = $%d", argCounter))
+		args = append(args, *item.Category)
+		argCounter++
 	}
+
+	if item.Price != nil {
+		setClauses = append(setClauses, fmt.Sprintf("price = $%d", argCounter))
+		args = append(args, *item.Price)
+		argCounter++
+	}
+
+	if item.Status != nil {
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", argCounter))
+		args = append(args, *item.Status)
+		argCounter++
+	}
+
 	if item.Brand != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("brand = $%d", argCounter))
-	 	args = append(args, *item.Brand)
-	 	argCounter++
+		setClauses = append(setClauses, fmt.Sprintf("brand = $%d", argCounter))
+		args = append(args, *item.Brand)
+		argCounter++
 	}
 	if item.Color != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("color = $%d", argCounter))
-	 	args = append(args, *item.Color)
-	 	argCounter++
+		setClauses = append(setClauses, fmt.Sprintf("color = $%d", argCounter))
+		args = append(args, *item.Color)
+		argCounter++
 	}
 	if item.Size != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("size = $%d", argCounter))
-	 	args = append(args, *item.Size)
-	 	argCounter++
+		setClauses = append(setClauses, fmt.Sprintf("size = $%d", argCounter))
+		args = append(args, *item.Size)
+		argCounter++
 	}
+
+	if item.Sex != nil {
+		setClauses = append(setClauses, fmt.Sprintf("sex = $%d", argCounter))
+		args = append(args, *item.Sex)
+		argCounter++
+	}
+
 	if item.Description != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("description = $%d", argCounter))
-	 	args = append(args, *item.Description)
-	 	argCounter++
+		setClauses = append(setClauses, fmt.Sprintf("description = $%d", argCounter))
+		args = append(args, *item.Description)
+		argCounter++
 	}
-	if item.Price != nil {
-	 	setClauses = append(setClauses, fmt.Sprintf("price = $%d", argCounter))
-	 	args = append(args, *item.Price)
-	 	argCounter++
+
+	if item.Created_at != nil {
+		setClauses = append(setClauses, fmt.Sprintf("created_at = $%d", argCounter))
+		args = append(args, *item.Created_at)
+		argCounter++
 	}
-   
+
+	if item.Sold_at != nil {
+		setClauses = append(setClauses, fmt.Sprintf("sold_at = $%d", argCounter))
+		args = append(args, *item.Sold_at)
+		argCounter++
+	}
+
+	if item.Seller_id != nil {
+		setClauses = append(setClauses, fmt.Sprintf("seller_id = $%d", argCounter))
+		args = append(args, *item.Seller_id)
+		argCounter++
+	}
+
+	if item.Buyer_id != nil {
+		setClauses = append(setClauses, fmt.Sprintf("buyer_id = $%d", argCounter))
+		args = append(args, *item.Buyer_id)
+		argCounter++
+	}
+
 	if len(setClauses) == 0 {
 		return "", nil
 	}
 
-	setClauses = append(setClauses, fmt.Sprintf("uuid = $%d", argCounter))
-	args = append(args, item.UUID)
-   
-	query := "UPDATE Items SET " + strings.Join(setClauses, ", ") + " WHERE uuid = $1"
+	query := "UPDATE Items SET " + strings.Join(setClauses, ", ") + " WHERE id = $1"
 	return query, args
 }
