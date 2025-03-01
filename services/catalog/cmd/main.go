@@ -33,7 +33,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	handler := handlers.Handler{ConnPool : connPool}
+	handler := handlers.Handler{ConnPool : connPool, Cfg: cfg}
 	mux.HandleFunc("/item", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "POST":
@@ -44,6 +44,15 @@ func main() {
 			handler.DeleteItem(w, r)
 		case "GET":
 			handler.GetItem(w, r)
+		}
+	})
+
+	mux.HandleFunc("/item_photos", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case "POST":
+			handler.AddPhotos(w, r)
+		case "DELETE":
+			handler.DeletePhoto(w, r)
 		}
 	})
 

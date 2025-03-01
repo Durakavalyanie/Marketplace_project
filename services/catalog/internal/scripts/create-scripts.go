@@ -60,10 +60,26 @@ func CreateCatalogTables(pool *pgxpool.Pool) error {
 		);
 
 		CREATE TABLE IF NOT EXISTS Items_photos(
-    		id SERIAL PRIMARY KEY,
+    		id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     		item_id UUID REFERENCES Items(id) ON DELETE CASCADE,
-    		photo_path TEXT NOT NULL
-		);`
+    		photo_path TEXT NOT NULL,
+			display_order INTEGER NOT NULL
+		);
+		
+		CREATE OR REPLACE FUNCTION generate_photo_path() 
+		RETURNS TRIGGER AS $$
+		BEGIN
+    		NEW.photo_path := CONCAT(NEW.item_id, '/', NEW.id, '.jpg');
+			RETURN NEW;
+		END;
+		$$ LANGUAGE plpgsql;
+
+		DROP TRIGGER IF EXISTS set_photo_path on Items_photos;
+		
+		CREATE TRIGGER set_photo_path
+		BEFORE INSERT ON Items_photos
+		FOR EACH ROW
+		EXECUTE FUNCTION generate_photo_path();`
 	_, err := pool.Exec(context.Background(), createCatalogTablesScript)
 	if err != nil {
 		return fmt.Errorf("error in creating catalog tables: %w", err)

@@ -8,13 +8,14 @@ import (
 )
 
 type Config struct {
-	DBHost      string
-	DBPort      string
-	DBUser      string
-	DBPassword  string
-	DBName      string
-	CatalogPort string
-	SSLMode     string
+	DBHost            string
+	DBPort            string
+	DBUser            string
+	DBPassword        string
+	DBName            string
+	CatalogPort       string
+	SSLMode           string
+	PhotosStoragePath string
 }
 
 func LoadConfig() Config {
@@ -24,13 +25,14 @@ func LoadConfig() Config {
 	}
 
 	return Config{
-		DBHost:      getEnv("DB_HOST"),
-		DBPort:      getEnv("DB_PORT"),
-		DBUser:      getEnv("DB_USER"),
-		DBPassword:  getEnv("DB_PASSWORD"),
-		DBName:      getEnv("DB_NAME"),
-		CatalogPort: getEnv("CATALOG_PORT"),
-		SSLMode:     getEnv("SSL_MODE"),
+		DBHost:            getEnv("DB_HOST"),
+		DBPort:            getEnv("DB_PORT"),
+		DBUser:            getEnv("DB_USER"),
+		DBPassword:        getEnv("DB_PASSWORD"),
+		DBName:            getEnv("DB_NAME"),
+		CatalogPort:       getEnv("CATALOG_PORT"),
+		SSLMode:           getEnv("SSL_MODE"),
+		PhotosStoragePath: getEnv("PHOTOS_STORAGE_PATH"),
 	}
 }
 

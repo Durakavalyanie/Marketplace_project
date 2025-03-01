@@ -24,6 +24,8 @@ services:
       APP_PORT: ${CATALOG_PORT}
     ports:
       - "${CATALOG_PORT}:${CATALOG_PORT}"
+    volumes:
+    - ./:/app
     depends_on:
       - catalog_database
     networks:

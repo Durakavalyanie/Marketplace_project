@@ -22,7 +22,7 @@ type Item struct {
 }
 
 type ItemUpdate struct {
-	UUID        uuid.UUID  `json:"uuid"`
+	UUID        uuid.UUID  `json:"id"`
 	Category    *string    `json:"category,omitempty"`
 	Price       *int32     `json:"price,omitempty"`
 	Status      *string    `json:"status,omitempty"`
@@ -38,5 +38,5 @@ type ItemUpdate struct {
 }
 
 type ItemID struct {
-	UUID uuid.UUID `json:"uuid"`
+	UUID uuid.UUID `json:"id"`
 }

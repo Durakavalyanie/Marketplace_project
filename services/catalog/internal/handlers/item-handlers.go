@@ -8,11 +8,14 @@ import (
 
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/models"
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/scripts"
+	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/config"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type Handler struct {
 	ConnPool *pgxpool.Pool
+	Cfg config.Config
 }
 
 func (handler *Handler)AddItem(w http.ResponseWriter, r *http.Request) {

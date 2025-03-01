@@ -65,6 +65,42 @@ func GetItem(ctx context.Context, connPool *pgxpool.Pool, item *models.ItemID) (
 	return &foundItem, nil
 }
 
+func AddPhoto(ctx context.Context, connPool *pgxpool.Pool, photo *models.Photo) (*models.PhotoID, error) {
+	addPhotoScript := "INSERT INTO Items_photos(item_id, display_order) values($1, $2) RETURNING id"
+
+	var photoID models.PhotoID
+	err := connPool.QueryRow(ctx, addPhotoScript, photo.ItemUUID, photo.DisplayOrder).Scan(&photoID.UUID)
+	if err != nil {
+		return nil, fmt.Errorf("error while adding photo")
+	}
+
+	return &photoID, nil
+}
+
+func DeletePhoto(ctx context.Context, connPool *pgxpool.Pool, item *models.PhotoID) (error) {
+	addPhotoScript := "DELETE FROM Items_photos WHERE id = $1"
+
+	_, err := connPool.Exec(ctx, addPhotoScript, item.UUID)
+	if err != nil {
+		return fmt.Errorf("error while deleting photo")
+	}
+
+	return nil
+}
+
+func GetPhotoPath(ctx context.Context, connPool *pgxpool.Pool, item *models.PhotoID) (string, error) {
+	addPhotoScript := "SELECT photo_path FROM Items_photos WHERE id = $1"
+
+	var path string
+	err := connPool.QueryRow(ctx, addPhotoScript, item.UUID).Scan(&path)
+	if err != nil || path == "" {
+		return "", fmt.Errorf("error while searching photo")
+	}
+
+	return path, nil
+}
+
+
 func generateUpdateQuery(item *models.ItemUpdate) (string, []interface{}) {
 	setClauses := []string{}
 	args := []interface{}{item.UUID}
