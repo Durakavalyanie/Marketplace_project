@@ -12,11 +12,11 @@ import (
 
 func AddItem(ctx context.Context, poolConn *pgxpool.Pool, item *models.Item) (*models.ItemID, error) {
 	addItemScript := `
-		INSERT INTO Items(category, price, status, brand, color, size, sex, description, created_at, sold_at, seller_id, buyer_id)
-		values($1, $2, $3, $4, $5, $6, $7, $8, COALESCE($9, NOW()), $10, $11, $12) RETURNING id;`
+		INSERT INTO Items(name, category, price, status, brand, color, size, sex, description, created_at, sold_at, seller_id, buyer_id)
+		values($1, $2, $3, $4, $5, $6, $7, $8, $9, COALESCE($10, NOW()), $11, $12, $13) RETURNING id;`
 
 	var itemID models.ItemID
-	err := poolConn.QueryRow(context.Background(), addItemScript, item.Category, item.Price,
+	err := poolConn.QueryRow(context.Background(), addItemScript, item.Name, item.Category, item.Price,
 		item.Status, item.Brand, item.Color, item.Size, item.Sex, item.Description, item.Created_at,
 		item.Sold_at, item.Seller_id, item.Buyer_id).Scan(&itemID.UUID)
 
@@ -55,7 +55,7 @@ func GetItem(ctx context.Context, connPool *pgxpool.Pool, item *models.ItemID) (
 	getItemScript := "SELECT * FROM Items WHERE id = $1"
 
 	var foundItem models.Item
-	err := connPool.QueryRow(ctx, getItemScript, item.UUID).Scan(nil, &foundItem.Category, &foundItem.Price,
+	err := connPool.QueryRow(ctx, getItemScript, item.UUID).Scan(nil, &foundItem.Name, &foundItem.Category, &foundItem.Price,
 		&foundItem.Status, &foundItem.Brand, &foundItem.Color, &foundItem.Size, &foundItem.Sex,
 		&foundItem.Description, &foundItem.Created_at, &foundItem.Sold_at, &foundItem.Seller_id, &foundItem.Buyer_id)
 	if err != nil {
@@ -105,6 +105,12 @@ func generateUpdateQuery(item *models.ItemUpdate) (string, []interface{}) {
 	setClauses := []string{}
 	args := []interface{}{item.UUID}
 	argCounter := 2
+
+	if item.Name != nil {
+		setClauses = append(setClauses, fmt.Sprintf("name = $%d", argCounter))
+		args = append(args, *item.Name)
+		argCounter++
+	}
 
 	if item.Category != nil {
 		setClauses = append(setClauses, fmt.Sprintf("category = $%d", argCounter))

@@ -56,7 +56,7 @@ func (handler *Handler)AddPhotos(w http.ResponseWriter, r *http.Request) {
 
 		photoID, err := scripts.AddPhoto(ctx, handler.ConnPool, &photo)
 		if err != nil {
-			http.Error(w, "Failed to add photo to data base", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		*photo.DisplayOrder++

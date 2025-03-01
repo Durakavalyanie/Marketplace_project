@@ -45,6 +45,7 @@ func CreateCatalogTables(pool *pgxpool.Pool) error {
 
 		CREATE TABLE IF NOT EXISTS Items (
     		id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+			name TEXT NOT NULL,
 			category category_var NOT NULL,
 			price INTEGER NOT NULL,
 			status status_var NOT NULL,

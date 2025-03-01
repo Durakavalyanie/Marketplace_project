@@ -7,6 +7,7 @@ import (
 )
 
 type Item struct {
+	Name 		string     `json:"name"`
 	Category    string     `json:"category"`
 	Price       int32      `json:"price"`
 	Status      string     `json:"status"`
@@ -23,6 +24,7 @@ type Item struct {
 
 type ItemUpdate struct {
 	UUID        uuid.UUID  `json:"id"`
+	Name 		*string    `json:"name,omitempty"`
 	Category    *string    `json:"category,omitempty"`
 	Price       *int32     `json:"price,omitempty"`
 	Status      *string    `json:"status,omitempty"`

@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/config"
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/models"
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/scripts"
-	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/config"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
@@ -37,7 +37,7 @@ func (handler *Handler)AddItem(w http.ResponseWriter, r *http.Request) {
 	itemID, err = scripts.AddItem(ctx, handler.ConnPool, &item)
 
 	if err != nil {
-		http.Error(w, "Adding error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -68,7 +68,7 @@ func (handler *Handler)UpdateItem(w http.ResponseWriter, r *http.Request) {
 	err = scripts.UpdateItem(ctx, handler.ConnPool, &item)
 
 	if err != nil {
-		http.Error(w, "Updating error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -90,9 +90,8 @@ func (handler *Handler)DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 	ctx := context.Background()
 	err = scripts.DeleteItem(ctx, handler.ConnPool, &item)
-
 	if err != nil {
-		http.Error(w, "Deleting error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -116,7 +115,8 @@ func (handler *Handler)GetItem(w http.ResponseWriter, r *http.Request) {
 	var foundItem *models.Item
 	foundItem, err = scripts.GetItem(ctx, handler.ConnPool, &item)
 	if err != nil {
-		http.Error(w, "Getting error", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
