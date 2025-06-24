@@ -11,7 +11,6 @@ import (
 
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/config"
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/handlers"
-	//"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/models"
 	"github.com/Dyrakavalyanie/Clothes_shop/services/catalog/internal/scripts"
 	"golang.org/x/sync/errgroup"
 )

@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  search_service:
+    build: .
+    ports:
+      - "${SEARCH_PORT}:${SEARCH_PORT}"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=${REDIS_PORT}
+      - KAFKA_BROKER=kafka:${KAFKA_BROKER_PORT}
+      - GRPC_PORT=${GRPC_PORT}
+      - SEARCH_PORT=${SEARCH_PORT}
+      - VCPKG_ROOT=/vcpkg
+    depends_on:
+      - redis
+      - kafka
+    volumes:
+      - /home/pavel/shop/services/search/vcpkg:/vcpkg
+    networks:
+      - backend
+
+  redis:
+    image: redis:7
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    networks:
+      - backend
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - backend
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "${KAFKA_BROKER_PORT}:${KAFKA_BROKER_PORT}"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_BROKER_PORT}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
