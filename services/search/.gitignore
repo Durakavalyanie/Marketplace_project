@@ -1,0 +1,15 @@
+*
+!*/
+!*.cpp
+!*.h
+!*.hpp
+
+!CMakeLists.txt
+!docker-compose.yml
+!Dockerfile
+!.gitignore
+!.dockerignore
+
+vcpkg
+build
+.vscode
